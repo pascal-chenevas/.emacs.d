@@ -1,0 +1,7 @@
+(require 'lsp-mode)
+
+(setq lsp-auto-guess-root nil)
+(setq lsp-ui-flycheck-enable 1)
+(setq lsp-prefer-capf t)
+(setq lsp-completion-provider :capf)
+(setq lsp-completion-enable t)

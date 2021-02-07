@@ -1,0 +1,425 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>EmacsWiki: imenu-tree.el</title><link rel="alternate" type="application/wiki" title="Edit this page" href="https://www.emacswiki.org/emacs?action=edit;id=imenu-tree.el" /><link type="text/css" rel="stylesheet" href="https://www.emacswiki.org/light.css" /><meta name="robots" content="INDEX,FOLLOW" /><link rel="alternate" type="application/rss+xml" title="EmacsWiki" href="https://www.emacswiki.org/emacs?action=rss" /><link rel="alternate" type="application/rss+xml" title="EmacsWiki: imenu-tree.el" href="https://www.emacswiki.org/emacs?action=rss;rcidonly=imenu-tree.el" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki with page content"
+      href="https://www.emacswiki.org/full.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki with page content and diff"
+      href="https://www.emacswiki.org/full-diff.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki including minor differences"
+      href="https://www.emacswiki.org/minor-edits.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Changes for imenu-tree.el only"
+      href="https://www.emacswiki.org/emacs?action=rss;rcidonly=imenu-tree.el" /><meta content="width=device-width" name="viewport" />
+<script type="text/javascript" src="/outliner.0.5.0.62-toc.js"></script>
+<script type="text/javascript">
+
+  function addOnloadEvent(fnc) {
+    if ( typeof window.addEventListener != "undefined" )
+      window.addEventListener( "load", fnc, false );
+    else if ( typeof window.attachEvent != "undefined" ) {
+      window.attachEvent( "onload", fnc );
+    }
+    else {
+      if ( window.onload != null ) {
+	var oldOnload = window.onload;
+	window.onload = function ( e ) {
+	  oldOnload( e );
+	  window[fnc]();
+	};
+      }
+      else
+	window.onload = fnc;
+    }
+  }
+
+  // https://stackoverflow.com/questions/280634/endswith-in-javascript
+  if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+      return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+  }
+
+  var initToc=function() {
+
+    var outline = HTML5Outline(document.body);
+    if (outline.sections.length == 1) {
+      outline.sections = outline.sections[0].sections;
+    }
+
+    if (outline.sections.length > 1
+	|| outline.sections.length == 1
+           && outline.sections[0].sections.length > 0) {
+
+      var toc = document.getElementById('toc');
+
+      if (!toc) {
+	var divs = document.getElementsByTagName('div');
+	for (var i = 0; i < divs.length; i++) {
+	  if (divs[i].getAttribute('class') == 'toc') {
+	    toc = divs[i];
+	    break;
+	  }
+	}
+      }
+
+      if (!toc) {
+	var h2 = document.getElementsByTagName('h2')[0];
+	if (h2) {
+	  toc = document.createElement('div');
+	  toc.setAttribute('class', 'toc');
+	  h2.parentNode.insertBefore(toc, h2);
+	}
+      }
+
+      if (toc) {
+        var html = outline.asHTML(true);
+        toc.innerHTML = html;
+
+	items = toc.getElementsByTagName('a');
+	for (var i = 0; i < items.length; i++) {
+	  while (items[i].textContent.endsWith('✎')) {
+            var text = items[i].childNodes[0].nodeValue;
+	    items[i].childNodes[0].nodeValue = text.substring(0, text.length - 1);
+	  }
+	}
+      }
+    }
+  }
+
+  addOnloadEvent(initToc);
+  </script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body class="default" lang="en"><div class="header"><a class="logo" href="https://www.emacswiki.org/emacs/SiteMap"><img alt="[Home]" class="logo" src="https://www.emacswiki.org/images/logo218x38.png" /></a><div class="menu"><span class="gotobar bar"><a class="local" href="https://www.emacswiki.org/emacs/SiteMap">SiteMap</a> <a class="local" href="https://www.emacswiki.org/emacs/Search">Search</a> <a class="local" href="https://www.emacswiki.org/emacs/ElispArea">ElispArea</a> <a class="local" href="https://www.emacswiki.org/emacs/HowTo">HowTo</a> <a class="local" href="https://www.emacswiki.org/emacs/Glossary">Glossary</a> <a class="local" href="https://www.emacswiki.org/emacs/RecentChanges">RecentChanges</a> <a class="local" href="https://www.emacswiki.org/emacs/News">News</a> <a class="local" href="https://www.emacswiki.org/emacs/Problems">Problems</a> <a class="local" href="https://www.emacswiki.org/emacs/Suggestions">Suggestions</a> </span><form method="get" action="https://www.emacswiki.org/emacs" enctype="multipart/form-data" accept-charset="utf-8" class="search"><p><label for="search">Search:</label> <input type="text" name="search"  size="15" accesskey="f" id="search" /> <label for="searchlang">Language:</label> <input type="text" name="lang"  size="5" id="searchlang" /> <input type="submit" name="dosearch" value="Go!" /></p></form></div><h1><a href="https://www.emacswiki.org/emacs?search=%22imenu-tree%5c.el%22" rel="nofollow" title="Click to search for references to this page">imenu-tree.el</a></h1></div><div class="wrapper"><div class="content browse" lang="en"><p class="download"><a href="http://www.emacswiki.org/emacs/download/imenu-tree.el">Download</a></p><pre><span class="comment">;;; imenu-tree.el --- A mode to view imenu using tree-widget</span>
+
+<span class="comment">;; Copyright 2007 Ye Wenbin</span>
+<span class="comment">;;</span>
+<span class="comment">;; Author: wenbinye@163.com</span>
+<span class="comment">;; Version: $Id: imenu-tree.el,v 1.1.1.1 2007-03-13 13:16:10 ywb Exp $</span>
+<span class="comment">;; Keywords: help, convenience</span>
+<span class="comment">;; </span>
+<span class="comment">;; This file is part of PDE (Perl Development Environment).</span>
+<span class="comment">;; But it is useful for generic programming.</span>
+
+<span class="comment">;; This program is free software; you can redistribute it and/or modify</span>
+<span class="comment">;; it under the terms of the GNU General Public License as published by</span>
+<span class="comment">;; the Free Software Foundation; either version 2, or (at your option)</span>
+<span class="comment">;; any later version.</span>
+<span class="comment">;;</span>
+<span class="comment">;; This program is distributed in the hope that it will be useful,</span>
+<span class="comment">;; but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="comment">;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="comment">;; GNU General Public License for more details.</span>
+<span class="comment">;;</span>
+<span class="comment">;; You should have received a copy of the GNU General Public License</span>
+<span class="comment">;; along with this program; if not, write to the Free Software</span>
+<span class="comment">;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</span>
+
+<span class="comment">;;; Dependencies<span class="builtin">:</span></span>
+<span class="comment">;; windata.el   -- http<span class="builtin">://www</span>.emacswiki.org/cgi-bin/wiki/windata.el</span>
+<span class="comment">;; tree-mode.el -- http<span class="builtin">://www</span>.emacswiki.org/cgi-bin/wiki/tree-mode.el</span>
+
+<span class="comment">;;; Installation<span class="builtin">:</span></span>
+<span class="comment">;; 1. Download Icons from http<span class="builtin">://www</span>.emacswiki.org/cgi-bin/wiki/ImenuTreeIcons</span>
+<span class="comment">;; and rename the file with suffix .tar.gz to extract it property.</span>
+<span class="comment">;; Put the `<span class="constant important">tree-widget</span>' directory to load-path.</span>
+<span class="comment">;; </span>
+<span class="comment">;; 2. Put this file into your load-path and the following into your ~/.emacs<span class="builtin">:</span></span>
+<span class="comment">;;   (<span class="keyword">require</span> '<span class="constant">imenu-tree</span>)</span>
+
+<span class="comment">;;; Code<span class="builtin">:</span></span>
+
+(<span class="keyword">provide</span> '<span class="constant">imenu-tree</span>)
+(<span class="keyword elisp">eval-when-compile</span>
+  (<span class="keyword">require</span> '<span class="constant">cl</span>))
+
+(<span class="keyword">require</span> '<span class="constant">imenu</span>)
+(<span class="keyword">require</span> '<span class="constant">tree-mode</span>)
+(<span class="keyword">require</span> '<span class="constant">windata</span>)
+
+(<span class="keyword">defgroup</span> <span class="type">imenu-tree</span> nil
+  <span class="string">"Display imenu using tree-widget"</span>
+  <span class="builtin">:group</span> 'convenience
+  <span class="builtin">:group</span> 'pde)
+
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-create-buffer-function</span> nil
+  <span class="string">"*A function to create buffer for insert imenu tree"</span>
+  <span class="builtin">:group</span> 'imenu-tree
+  <span class="builtin">:type</span> 'function)
+
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-name</span> `(concat mode-name <span class="string">": "</span> (or (buffer-name) <span class="string">"&lt;NIL&gt;"</span>))
+  <span class="string">"*Tree imenu root name. "</span>
+  <span class="builtin">:group</span> 'imenu-tree
+  <span class="builtin">:type</span> 'sexp)
+
+<span class="comment">;;;###<span class="warning">autoload</span></span>
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-icons</span>
+  '((<span class="string">"Types"</span> . <span class="string">"function"</span>)
+    (<span class="string">"Variables"</span> . <span class="string">"variable"</span>))
+  <span class="string">"*A list to search icon for the button in the tree.
+The key is a regexp match the tree node name. The value is the icon
+name for the children of the tree node."</span>
+  <span class="builtin">:group</span> 'imenu-tree
+  <span class="builtin">:type</span> '(alist <span class="builtin">:keytype</span> regexp <span class="builtin">:value-type</span> string))
+
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-windata</span>
+  '(frame left 0.3 delete)
+  <span class="string">"*Arguments to set the window buffer display.
+See `<span class="constant important">windata-display-buffer</span>' for setup the arguments."</span>
+  <span class="builtin">:group</span> 'imenu-tree
+  <span class="builtin">:type</span> 'sexp)
+
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-auto-update</span> nil
+  <span class="string">"*Non-nil means auto update imenu-tree."</span>
+  <span class="builtin">:group</span> 'imenu-tree
+  <span class="builtin">:type</span> 'boolean)
+
+(<span class="keyword">defcustom</span> <span class="variable">imenu-tree-update-interval</span> 2
+  <span class="string">"*Seconds between update imenu tree."</span>
+  <span class="builtin">:type</span> 'integer
+  <span class="builtin">:group</span> 'imenu-tree)
+
+(<span class="keyword">defvar</span> <span class="variable">imenu-tree-need-update</span> nil)
+(<span class="keyword">defvar</span> <span class="variable">imenu-tree-update-timer</span> nil)
+(<span class="keyword">defvar</span> <span class="variable">imenu-tree-buffer</span> nil)
+(<span class="keyword">defvar</span> <span class="variable">imenu-tree</span> nil)
+
+(<span class="keyword">define-derived-mode</span> <span class="function">imenu-tree-mode</span> tree-mode <span class="string">"Imenu-Tree"</span>
+  <span class="string">"A mode to display tree of imenu"</span>
+  (tree-widget-set-theme <span class="string">"imenu"</span>)
+  (add-hook 'tree-mode-delete-tree-hook 'tree-mode-kill-buffer))
+
+<span class="comment">;;;###<span class="warning">autoload</span> </span>
+(<span class="keyword">defun</span> <span class="function">imenu-tree</span> (arg)
+  <span class="string">"Display tree view of imenu.
+With prefix argument, select imenu tree buffer window."</span>
+  (interactive <span class="string">"P"</span>)
+  (<span class="keyword elisp">let</span> ((old-tree (and (local-variable-p 'imenu-tree) imenu-tree))
+        (buf (current-buffer))
+        tree)
+    (<span class="keyword elisp">if</span> (and (local-variable-p 'imenu-tree-buffer)
+             (buffer-live-p imenu-tree-buffer))
+        (<span class="keyword elisp">with-current-buffer</span> imenu-tree-buffer
+          (<span class="keyword elisp">if</span> (and old-tree (memq old-tree tree-mode-list))
+              (setq tree old-tree)
+            (setq tree (tree-mode-insert (imenu-tree-widget buf)))))
+      (<span class="keyword elisp">let</span> ((buffer (<span class="keyword elisp">if</span> (functionp imenu-tree-create-buffer-function)
+                        (funcall imenu-tree-create-buffer-function buf)
+                      (get-buffer-create <span class="string">"*imenu-tree*"</span>))))
+        (set (make-local-variable 'imenu-tree-buffer) buffer)
+        (<span class="keyword cl">when</span> imenu-tree-auto-update
+          (or imenu-tree-update-timer
+              (imenu-tree-toggle-auto-update t))
+          (set (make-local-variable 'imenu-tree-need-update) nil)
+          (add-hook 'after-change-functions 'imenu-tree-after-change nil t))
+        (add-hook 'kill-buffer-hook 'imenu-tree-kill nil t)
+        (<span class="keyword elisp">with-current-buffer</span> buffer
+          (<span class="keyword cl">unless</span> (eq major-mode 'imenu-tree-mode)
+            (imenu-tree-mode))
+          (setq tree (tree-mode-insert (imenu-tree-widget buf))))))
+    (set (make-local-variable 'imenu-tree) tree)
+    (<span class="keyword elisp">let</span> ((win (get-buffer-window imenu-tree-buffer)))
+      <span class="comment">;; if imenu-tree-buffer is visible, do nothing</span>
+      (<span class="keyword cl">unless</span> win
+        (setq win (apply 'windata-display-buffer
+                         imenu-tree-buffer
+                         imenu-tree-windata))
+        (select-window win))
+      (<span class="keyword elisp">with-selected-window</span> win
+        (<span class="keyword cl">unless</span> (widget-get tree <span class="builtin">:open</span>)
+          (widget-apply-action tree))
+        (goto-char (widget-get tree <span class="builtin">:from</span>))
+        (recenter 1))
+      (<span class="keyword elisp">if</span> arg
+          (select-window win)))))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-kill</span> ()
+  (<span class="keyword elisp">let</span> ((tree imenu-tree))
+    (<span class="keyword cl">when</span> (and tree
+               imenu-tree-buffer
+               (buffer-live-p imenu-tree-buffer))
+      (<span class="keyword elisp">with-current-buffer</span> imenu-tree-buffer
+        (<span class="keyword cl">ignore-errors</span>
+          (tree-mode-delete tree))))))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-show</span> ()
+  <span class="string">"If the `<span class="constant important">imenu-tree</span>' of current buffer is not visible, show the tree."</span>
+  (interactive)
+  (<span class="keyword elisp">let</span> (win)
+    (<span class="keyword cl">when</span> (and imenu-tree
+               (setq win (get-buffer-window imenu-tree-buffer)))
+      (<span class="keyword elisp">let</span> ((pos (window-point win)))
+        (<span class="keyword elisp">if</span> (not (and (&gt;= pos (widget-get imenu-tree <span class="builtin">:from</span>))
+                      (&lt;= pos (widget-get imenu-tree <span class="builtin">:to</span>))))
+            (set-window-start win (widget-get imenu-tree <span class="builtin">:from</span>)))))))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-toggle-auto-update</span> (arg)
+  <span class="string">"Toggle imenu-tree auto update.
+With prefix argument, turn on auto update."</span>
+  (interactive <span class="string">"P"</span>)
+  (setq imenu-tree-auto-update
+        (<span class="keyword elisp">if</span> (null arg)
+            (not imenu-tree-auto-update)
+          (&gt; (prefix-numeric-value arg) 0)))
+  (and imenu-tree-update-timer
+       (cancel-timer imenu-tree-update-timer))
+  (<span class="keyword cl">when</span> imenu-tree-auto-update
+    (setq imenu-tree-update-timer
+          (run-with-timer nil imenu-tree-update-interval
+                          'imenu-tree-update-timer))
+    (mapc (<span class="keyword elisp">lambda</span> (buf)
+            (<span class="keyword cl">when</span> (local-variable-if-set-p 'imenu-tree)
+              (set (make-local-variable 'imenu-tree-need-update) t)
+              (add-hook 'after-change-functions 'imenu-tree-after-change nil t)))
+          (buffer-list))))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-update-timer</span> ()
+  <span class="string">"Update and show the tree if needed."</span>
+  (imenu-tree-show)
+  (<span class="keyword cl">when</span> (and imenu-tree
+             <span class="comment">;; the tree is visible</span>
+             (get-buffer-window imenu-tree-buffer) 
+             imenu-tree-need-update
+             <span class="comment">;; the buffer is not too large</span>
+             (not (&gt; (buffer-size) imenu-auto-rescan-maxout)))
+    (setq imenu--index-alist nil)
+    (imenu--make-index-alist t)
+    (<span class="keyword elisp">let</span> ((tree imenu-tree))
+      (<span class="keyword elisp">with-current-buffer</span> imenu-tree-buffer
+        (goto-char (widget-get tree <span class="builtin">:from</span>))
+        (tree-mode-reflesh)))
+    (setq imenu-tree-need-update nil)))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-after-change</span> (<span class="type">&amp;rest</span> ignore)
+  <span class="string">"Mark `<span class="constant important">imenu-tree-need-update</span>' if make change in buffer"</span>
+  (setq imenu-tree-need-update t))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-widget</span> (buf)
+  `(tree-widget
+    <span class="builtin">:node</span> (push-button
+           <span class="builtin">:tag</span> ,(<span class="keyword elisp">with-current-buffer</span> buf
+                   (eval imenu-tree-name))
+           <span class="builtin">:format</span> <span class="string">"%[%t%]\n"</span>
+           <span class="builtin">:notify</span> tree-mode-reflesh-parent)
+    <span class="builtin">:dynargs</span> imenu-tree-expand
+    <span class="builtin">:has-children</span> t
+    <span class="builtin">:buffer</span> ,buf
+    <span class="builtin">:open</span> t))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-item</span> (item buf icon)
+  (<span class="keyword elisp">if</span> (listp (cdr item))
+      `(tree-widget
+        <span class="builtin">:node</span> (push-button
+               <span class="builtin">:tag</span> ,(car item)
+               <span class="builtin">:button-icon</span> <span class="string">"bucket"</span>
+               <span class="builtin">:notify</span> tree-mode-reflesh-parent
+               <span class="builtin">:format</span> <span class="string">"%[%t%]\n"</span>)
+        <span class="builtin">:dynargs</span> imenu-tree-expand-bucket
+        <span class="builtin">:has-children</span> t)
+    `(push-button
+      <span class="builtin">:tag</span> ,(car item)
+      <span class="builtin">:imenu-marker</span> ,(<span class="keyword elisp">let</span> ((pos (cdr item)))
+                       (<span class="keyword elisp">cond</span> ((markerp pos) pos)
+                             ((numberp pos)
+                              (set-marker (make-marker) pos buf))
+                             ((overlayp pos)
+                              (set-marker (make-marker) (overlay-start pos) buf))
+                             (t (<span class="warning">error</span> <span class="string">"Unknown position type: %S"</span> pos))))
+      <span class="builtin">:button-icon</span> ,icon
+      <span class="builtin">:format</span> <span class="string">"%[%t%]\n"</span>
+      <span class="builtin">:notify</span> imenu-tree-select)))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-select</span> (node <span class="type">&amp;rest</span> ignore)
+  (<span class="keyword elisp">let</span> ((marker (widget-get node <span class="builtin">:imenu-marker</span>)))
+    (select-window (display-buffer (marker-buffer marker)))
+    (goto-char marker)))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-expand-bucket</span> (bucket)
+  (<span class="keyword elisp">let</span> ((tree bucket) path buf index name)
+    (<span class="keyword elisp">while</span> (and (tree-widget-p tree)
+                (widget-get tree <span class="builtin">:parent</span>))
+      (push (widget-get (widget-get tree <span class="builtin">:node</span>) <span class="builtin">:tag</span>) path)
+      (setq tree (widget-get tree <span class="builtin">:parent</span>)))
+    (setq buf (widget-get tree <span class="builtin">:buffer</span>)
+          name (car (last path)))
+    (setq index (buffer-local-value 'imenu--index-alist buf))
+    (<span class="keyword elisp">while</span> path
+      (setq index (cdr (assoc (car path) index)))
+      (<span class="keyword elisp">if</span> (null index)
+          (<span class="warning">error</span> <span class="string">"Type g to update imenu index"</span>))
+      (setq path (cdr path)))
+    (mapcar (<span class="keyword elisp">lambda</span> (item)
+              (imenu-tree-item item buf
+                               (or (assoc-default name imenu-tree-icons
+                                                  'string-match)
+                                   <span class="string">"function"</span>)))
+            index)))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-expand</span> (tree)
+  (or (widget-get tree <span class="builtin">:args</span>)
+      (<span class="keyword elisp">let</span> ((buf (widget-get tree <span class="builtin">:buffer</span>))
+            index)
+        (setq index (<span class="keyword elisp">with-current-buffer</span> buf
+                      (setq imenu--index-alist nil)
+                      (imenu--make-index-alist t)
+                      (delq nil imenu--index-alist)))
+        (mapcar (<span class="keyword elisp">lambda</span> (item)
+                  (imenu-tree-item item buf <span class="string">"function"</span>))
+                index))))
+
+(<span class="keyword">defun</span> <span class="function">imenu-tree-display</span> ()
+  (interactive)
+  (<span class="keyword elisp">let</span> ((widget (widget-at (1- (line-end-position))))
+        marker)
+    (<span class="keyword elisp">if</span> (setq marker (widget-get widget <span class="builtin">:imenu-marker</span>))
+        (<span class="keyword elisp">with-selected-window</span> (display-buffer (marker-buffer marker))
+          (goto-char marker)))))
+
+(define-key imenu-tree-mode-map <span class="string">"\C-o"</span> 'imenu-tree-display)
+
+<span class="comment">;;; imenu-tree.el ends here</span></pre></div><div class="wrapper close"></div></div><div class="footer"><hr /><span class="translation bar"><br />  <a class="translation new" href="https://www.emacswiki.org/emacs?action=translate;id=imenu-tree.el;missing=de_es_fr_it_ja_ko_pt_ru_se_uk_zh" rel="nofollow">Add Translation</a></span><div class="edit bar"><a accesskey="c" class="comment local edit" href="https://www.emacswiki.org/emacs/Comments_on_imenu-tree.el">Talk</a> <a accesskey="e" class="edit" href="https://www.emacswiki.org/emacs?action=edit;id=imenu-tree.el" rel="nofollow" title="Click to edit this page">Edit this page</a> <a class="history" href="https://www.emacswiki.org/emacs?action=history;id=imenu-tree.el" rel="nofollow">View other revisions</a> <a class="admin" href="https://www.emacswiki.org/emacs?action=admin;id=imenu-tree.el" rel="nofollow">Administration</a></div><div class="time">Last edited 2013-08-24 12:06 UTC by <a class="author" href="https://www.emacswiki.org/emacs/AlexSchroeder">AlexSchroeder</a> <a class="diff" href="https://www.emacswiki.org/emacs?action=browse;diff=2;id=imenu-tree.el" rel="nofollow">(diff)</a></div><div style="float:right; margin-left:1ex;">
+<!-- Creative Commons License -->
+<a class="licence" href="https://creativecommons.org/licenses/GPL/2.0/"><img alt="CC-GNU GPL" style="border:none" src="/pics/cc-GPL-a.png" /></a>
+<!-- /Creative Commons License -->
+</div>
+
+<!--
+<rdf:RDF xmlns="http://web.resource.org/cc/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<Work rdf:about="">
+   <license rdf:resource="https://creativecommons.org/licenses/GPL/2.0/" />
+  <dc:type rdf:resource="http://purl.org/dc/dcmitype/Software" />
+</Work>
+
+<License rdf:about="https://creativecommons.org/licenses/GPL/2.0/">
+   <permits rdf:resource="http://web.resource.org/cc/Reproduction" />
+   <permits rdf:resource="http://web.resource.org/cc/Distribution" />
+   <requires rdf:resource="http://web.resource.org/cc/Notice" />
+   <permits rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+   <requires rdf:resource="http://web.resource.org/cc/ShareAlike" />
+   <requires rdf:resource="http://web.resource.org/cc/SourceCode" />
+</License>
+</rdf:RDF>
+-->
+
+<p class="legal">
+This work is licensed to you under version 2 of the
+<a href="https://www.gnu.org/">GNU</a> <a href="/GPL">General Public License</a>.
+Alternatively, you may choose to receive this work under any other
+license that grants the right to use, copy, modify, and/or distribute
+the work, as long as that license imposes the restriction that
+derivative works have to grant the same rights and impose the same
+restriction. For example, you may choose to receive this work under
+the
+<a href="https://www.gnu.org/">GNU</a>
+<a href="/FDL">Free Documentation License</a>, the
+<a href="https://creativecommons.org/">CreativeCommons</a>
+<a href="https://creativecommons.org/licenses/sa/1.0/">ShareAlike</a>
+License, the XEmacs manual license, or
+<a href="/OLD">similar licenses</a>.
+</p>
+<p class="legal" style="padding-top: 0.5em">Please note our <a href="/emacs/Privacy">Privacy Statement</a>.</p>
+</div>
+</body>
+</html>

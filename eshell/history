@@ -1,0 +1,128 @@
+ls 
+cd templates/
+ls 
+cd page/
+ls 
+cd ..
+rm -r page/
+ls 
+ls 
+mix roman_numerals.ex 
+mix -S roman_numerals.ex 
+iex
+iex
+iex
+cargo run main.rs 
+cargo install racer
+ls 
+cargo run main.rs 
+cargo run main.rs 
+cargo run main.rs 
+cargo run main.rs 
+cargo uninstall racer
+cd ~
+ls 
+cd .cargo/
+ls 
+cd bin/
+ls 
+cd ..
+cd ..
+mv .cargo/ _cargo.old
+cargo test
+cargo test
+rustc --explain E249
+rustc --explain E240
+rustc --explain E0432
+cargo test
+cargo test
+cd ~
+ls
+cd dev/rust
+cargo new guessing_game
+cd guessing_game
+cargo run src/main.rs 
+cd dev/rust
+cargo run src/main.rs 
+cargo run src/main.rs 
+To learn more, run the command again with --verbose.
+cargo run src/main.rs 
+cargo run src/main.rs 
+Compiling guessing_game v0.1.0 (/home/pascal/dev/rust/guessing_game)
+cargo build
+cargo build
+cargo update
+cargo run src/main.rs 
+cargo run src/main.rs 
+cargo run src/main.rs 
+cargo run src/main.rs 
+cargo run src/main.rs 
+cargo run src/main.rs 
+cargo run src/main.rs 
+cd ~
+ls 
+cd dev/
+cd rust/
+ls 
+cd fist-cli-app/
+ls 
+cargo run
+cargo run
+cargo run
+cd ..
+cargo run
+cargo run src/lib.rs 
+cargo test 
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+cd ..
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+warning: method is never used: `new`
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+cargo test
+rustc --explain E0369
+cargo test
+cargo test
+cargo test
+cargo test
+cargo run
+cargo run
+cargo run
+For more information about this error, try `rustc --explain E0384`.
+cargo run
+cargo run
+cargo run
+cargo run
+cargo build
+cargo build
+cargo build
+cargo run
+cargo build
+cargo build
+cargo run
+cargo run
+error: aborting due to 2 previous errorscd 
+cd ..
+cd ..
+cargo new httpServer
+cd httpserver
+cd httpServer
+ls
+cargo run 
+mkdir http 
+cargo build
+cargo build
+cd httpservers
+dls;adlsa;'[	]clear'""

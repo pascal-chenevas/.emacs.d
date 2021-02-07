@@ -1,0 +1,581 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>EmacsWiki: tags-tree.el</title><link rel="alternate" type="application/wiki" title="Edit this page" href="https://www.emacswiki.org/emacs?action=edit;id=tags-tree.el" /><link type="text/css" rel="stylesheet" href="https://www.emacswiki.org/light.css" /><meta name="robots" content="INDEX,FOLLOW" /><link rel="alternate" type="application/rss+xml" title="EmacsWiki" href="https://www.emacswiki.org/emacs?action=rss" /><link rel="alternate" type="application/rss+xml" title="EmacsWiki: tags-tree.el" href="https://www.emacswiki.org/emacs?action=rss;rcidonly=tags-tree.el" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki with page content"
+      href="https://www.emacswiki.org/full.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki with page content and diff"
+      href="https://www.emacswiki.org/full-diff.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Emacs Wiki including minor differences"
+      href="https://www.emacswiki.org/minor-edits.rss" />
+<link rel="alternate" type="application/rss+xml"
+      title="Changes for tags-tree.el only"
+      href="https://www.emacswiki.org/emacs?action=rss;rcidonly=tags-tree.el" /><meta content="width=device-width" name="viewport" />
+<script type="text/javascript" src="/outliner.0.5.0.62-toc.js"></script>
+<script type="text/javascript">
+
+  function addOnloadEvent(fnc) {
+    if ( typeof window.addEventListener != "undefined" )
+      window.addEventListener( "load", fnc, false );
+    else if ( typeof window.attachEvent != "undefined" ) {
+      window.attachEvent( "onload", fnc );
+    }
+    else {
+      if ( window.onload != null ) {
+	var oldOnload = window.onload;
+	window.onload = function ( e ) {
+	  oldOnload( e );
+	  window[fnc]();
+	};
+      }
+      else
+	window.onload = fnc;
+    }
+  }
+
+  // https://stackoverflow.com/questions/280634/endswith-in-javascript
+  if (typeof String.prototype.endsWith !== 'function') {
+    String.prototype.endsWith = function(suffix) {
+      return this.indexOf(suffix, this.length - suffix.length) !== -1;
+    };
+  }
+
+  var initToc=function() {
+
+    var outline = HTML5Outline(document.body);
+    if (outline.sections.length == 1) {
+      outline.sections = outline.sections[0].sections;
+    }
+
+    if (outline.sections.length > 1
+	|| outline.sections.length == 1
+           && outline.sections[0].sections.length > 0) {
+
+      var toc = document.getElementById('toc');
+
+      if (!toc) {
+	var divs = document.getElementsByTagName('div');
+	for (var i = 0; i < divs.length; i++) {
+	  if (divs[i].getAttribute('class') == 'toc') {
+	    toc = divs[i];
+	    break;
+	  }
+	}
+      }
+
+      if (!toc) {
+	var h2 = document.getElementsByTagName('h2')[0];
+	if (h2) {
+	  toc = document.createElement('div');
+	  toc.setAttribute('class', 'toc');
+	  h2.parentNode.insertBefore(toc, h2);
+	}
+      }
+
+      if (toc) {
+        var html = outline.asHTML(true);
+        toc.innerHTML = html;
+
+	items = toc.getElementsByTagName('a');
+	for (var i = 0; i < items.length; i++) {
+	  while (items[i].textContent.endsWith('✎')) {
+            var text = items[i].childNodes[0].nodeValue;
+	    items[i].childNodes[0].nodeValue = text.substring(0, text.length - 1);
+	  }
+	}
+      }
+    }
+  }
+
+  addOnloadEvent(initToc);
+  </script>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body class="default" lang="en"><div class="header"><a class="logo" href="https://www.emacswiki.org/emacs/SiteMap"><img alt="[Home]" class="logo" src="https://www.emacswiki.org/images/logo218x38.png" /></a><div class="menu"><span class="gotobar bar"><a class="local" href="https://www.emacswiki.org/emacs/SiteMap">SiteMap</a> <a class="local" href="https://www.emacswiki.org/emacs/Search">Search</a> <a class="local" href="https://www.emacswiki.org/emacs/ElispArea">ElispArea</a> <a class="local" href="https://www.emacswiki.org/emacs/HowTo">HowTo</a> <a class="local" href="https://www.emacswiki.org/emacs/Glossary">Glossary</a> <a class="local" href="https://www.emacswiki.org/emacs/RecentChanges">RecentChanges</a> <a class="local" href="https://www.emacswiki.org/emacs/News">News</a> <a class="local" href="https://www.emacswiki.org/emacs/Problems">Problems</a> <a class="local" href="https://www.emacswiki.org/emacs/Suggestions">Suggestions</a> </span><form method="get" action="https://www.emacswiki.org/emacs" enctype="multipart/form-data" accept-charset="utf-8" class="search"><p><label for="search">Search:</label> <input type="text" name="search"  size="15" accesskey="f" id="search" /> <label for="searchlang">Language:</label> <input type="text" name="lang"  size="5" id="searchlang" /> <input type="submit" name="dosearch" value="Go!" /></p></form></div><h1><a href="https://www.emacswiki.org/emacs?search=%22tags-tree%5c.el%22" rel="nofollow" title="Click to search for references to this page">tags-tree.el</a></h1></div><div class="wrapper"><div class="content browse" lang="en"><p class="download"><a href="http://www.emacswiki.org/emacs/download/tags-tree.el">Download</a></p><pre class="code"><span class="linecomment">;;; tags-tree.el --- Display tree of TAGS</span>
+
+<span class="linecomment">;; Copyright 2007 Ye Wenbin</span>
+<span class="linecomment">;;</span>
+<span class="linecomment">;; Author: wenbinye@163.com</span>
+<span class="linecomment">;; Version: $Id: tags-tree.el,v 1.2 2007/02/17 06:40:33 ywb Exp ywb $</span>
+<span class="linecomment">;; Keywords: </span>
+<span class="linecomment">;; X-URL: not distributed yet</span>
+
+<span class="linecomment">;; This program is free software; you can redistribute it and/or modify</span>
+<span class="linecomment">;; it under the terms of the GNU General Public License as published by</span>
+<span class="linecomment">;; the Free Software Foundation; either version 2, or (at your option)</span>
+<span class="linecomment">;; any later version.</span>
+<span class="linecomment">;;</span>
+<span class="linecomment">;; This program is distributed in the hope that it will be useful,</span>
+<span class="linecomment">;; but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="linecomment">;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="linecomment">;; GNU General Public License for more details.</span>
+<span class="linecomment">;;</span>
+<span class="linecomment">;; You should have received a copy of the GNU General Public License</span>
+<span class="linecomment">;; along with this program; if not, write to the Free Software</span>
+<span class="linecomment">;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.</span>
+
+<span class="linecomment">;;; Commentary:</span>
+
+<span class="linecomment">;; </span>
+
+<span class="linecomment">;; Put this file into your load-path and the following into your ~/.emacs:</span>
+<span class="linecomment">;;   (require 'tags-tree)</span>
+
+<span class="linecomment">;;; Code:</span>
+
+(provide 'tags-tree)
+(eval-when-compile
+  (require 'cl))
+(require 'etags)
+(require 'tree-mode)
+
+<span class="linecomment">;;{{{  customization and variables definition</span>
+(defgroup tags-tree nil
+  "<span class="quote">Display TAGS using tree-widget</span>"
+  :group 'convenience)
+
+(defcustom tags-tree-create-buffer-function nil
+  "<span class="quote">A function to create buffer for insert tags tree</span>"
+  :group 'tags-tree
+  :type 'function)
+
+(defcustom tags-tree-group-file-function 'tags-tree-group-file-by-name
+  "<span class="quote">A function to group files. Accept a list of files, return
+a tree like:
+
+   (\"Root name\"
+    (\"Group1\"
+     (\"file1\" . \"full name of file1\"))
+    (\"Group2\"
+     (\"subgroup\"
+      (\"file2\" . \"full name of file2\"))))
+</span>"
+  :group 'tags-tree
+  :type 'function)
+
+(defcustom tags-tree-group-tags-function 'tags-tree-group-tags
+  "<span class="quote">A function to group tags. Accept a list of tags info, return
+a tags tree like:
+
+  (((\"group1\")
+    ((\"subgroup1\")
+     (\"tag1\" . tag-info))
+    (\"tag2\" . tag-info))
+   ((\"group2\")
+    (\"tag3\" . tag-info)))
+
+The group name set in a list to distinct with tags name.
+</span>"
+  :group 'tags-tree
+  :type 'function)
+
+(defvar tags-tree-list nil "<span class="quote">Alist for (FILE . TREE)</span>")
+
+(defvar tags-tree-icons
+  '(("<span class="quote">Variables</span>" . "<span class="quote">other</span>")))
+
+(defcustom tags-tree-window-width 40
+  "<span class="quote">Windows width of tags tree buffer</span>"
+  :group 'tags-tree
+  :type 'integer)
+
+(defcustom tags-tree-window-fuction
+  (lambda (trbuf buf)
+    (delete-other-windows)
+    (let* ((w1 (selected-window))
+           (w2 (split-window w1 tags-tree-window-width t)))
+      (set-window-buffer w1 trbuf)
+      (set-window-buffer w2 buf)
+      (other-window 1)))
+  "<span class="quote">Function to set the window buffer display</span>"
+  :group 'tags-tree
+  :type 'function)
+
+(defvar tags-tree-group-tags-expression
+  (list
+   (cons "<span class="quote">\\.el$</span>"  (append lisp-imenu-generic-expression
+                           '((nil "<span class="quote">^(\\sw+\\s-+[']?\\(\\(\\sw\\|\\s_\\)+\\)</span>" 1))))
+   (cons (regexp-opt '("<span class="quote">.cpp</span>" "<span class="quote">.h</span>" "<span class="quote">.c</span>"))
+         `((nil ,(concat
+                  "<span class="quote">^\\s-*</span>"
+                  "<span class="quote">\\([</span>" "<span class="quote">[:alpha:]</span>" "<span class="quote">_][</span>" "<span class="quote">[:alnum:]</span>" "<span class="quote">_:&lt;&gt;~]*\\)</span>"
+                  "<span class="quote">[ \t]*(</span>"))
+           (nil ,(concat
+                  "<span class="quote">^\\s-*\\&lt;</span>"
+                  "<span class="quote">[^()]*</span>"
+                  "<span class="quote">[^</span>" "<span class="quote">[:alnum:]</span>" "<span class="quote">_:&lt;&gt;~]</span>"
+                  "<span class="quote">\\([</span>" "<span class="quote">[:alpha:]</span>" "<span class="quote">_][</span>" "<span class="quote">[:alnum:]</span>" "<span class="quote">_:&lt;&gt;~]*\\)</span>"
+                  "<span class="quote">\\([ \t\n]\\|\\\\\n\\)*(</span>") 1)))))
+
+(defvar tags-tree-tags-update-program "<span class="quote">myetags</span>")
+
+<span class="linecomment">;;}}}</span>
+
+(define-derived-mode tags-tree-mode tree-mode "<span class="quote">Tags-Tree</span>"
+  "<span class="quote">A mode to display tree of TAGS</span>"
+  (tree-widget-set-theme "<span class="quote">imenu</span>")
+  (add-hook 'tree-mode-delete-tree-hook 'tree-mode-kill-buffer)
+  (add-hook 'kill-buffer-hook 'tags-tree-kill-buffer nil t))
+
+<span class="linecomment">;;{{{  Group file</span>
+(defun tags-tree-common-string (s1 s2 &optional icase)
+  (let ((i 0)
+        (len (min (length s1) (length s2))))
+    (if icase
+        (setq s1 (downcase s1)
+              s2 (downcase s2)))
+    (while (and (&lt; i len)
+                (= (aref s1 i) (aref s2 i)))
+      (setq i (1+ i)))
+    (substring s1 0 i)))
+
+(defun tags-tree-common-path (f1 f2 &optional icase)
+  (when (and f1 f2)
+    (let ((str (tags-tree-common-string f1 f2 icase)))
+      (file-name-directory str))))
+
+(defun tags-tree-parse-file (file)
+  "<span class="quote">If file contain directory, return a list (DIRECTORY FILENAME),
+otherwise return the file</span>"
+  (let ((dir (file-name-directory file)))
+    (if dir
+        (list dir (file-name-nondirectory file))
+      file)))
+
+(defun tags-tree-merge-file (tree file &optional icase)
+  (if (null tree)
+      (list (file-name-directory file) (file-name-nondirectory file))
+    (let ((common (tags-tree-common-path (car tree) file icase))
+          re1 re2)
+      (setq re1 (substring (car tree) (length common))
+            re2 (substring file (length common)))
+      (if (string= re1 "<span class="quote"></span>")
+          (let ((child (cadr tree)))
+            (if (listp child)
+                (cons common (if (tags-tree-common-path (car child) re2 icase)
+                                 (cons (tags-tree-merge-file child re2)
+                                       (cddr tree))
+                               (cons (tags-tree-parse-file re2)
+                                     (cdr tree))))
+              (append (list common (tags-tree-parse-file re2))
+                      (cdr tree))))
+        (cons common
+              (list (tags-tree-parse-file re2)
+                    (cons re1 (cdr tree))))))))
+
+(defun tags-tree-mark-file-name (tree prefix)
+  (setq prefix (concat prefix (car tree)))
+  (cons (car tree)
+        (mapcar (lambda (child)
+                  (if (listp child)
+                      (tags-tree-mark-file-name child prefix)
+                    (cons child (concat prefix child))))
+                (sort (cdr tree)
+                      (lambda (c1 c2)
+                        (if (and (listp c1) (listp c2))
+                            (string&lt; (car c1) (car c2))
+                          (or (listp c1)
+                              (string&lt; c1 c2))))))))
+
+(defun tags-tree-group-file-by-name (files)
+  (setq files (sort (copy-sequence files) 'string&lt;))
+  (let (tree)
+    (dolist (file (mapcar (lambda (f)
+                            (concat "<span class="quote">./</span>" f)) files))
+      (setq tree (tags-tree-merge-file tree file)))
+    (setcar tree (substring (car tree) 2))
+    (setq tree (tags-tree-mark-file-name tree "<span class="quote"></span>"))
+    (if (string= (car tree) "<span class="quote"></span>")
+        (setcar tree default-directory))
+    tree))
+<span class="linecomment">;;}}}</span>
+
+<span class="linecomment">;;{{{  Group tags</span>
+(defun tags-tree-group-tags-default (tags)
+  (mapcar (lambda (tag)
+            (cons 
+             (concat (car tag)
+                     (if (= (aref (car tag) 0) ?\() "<span class="quote"> ...)</span>"))
+             tag))
+          tags))
+ 
+(defun tags-tree-group-add-tags (alist key val)
+  (let ((alist-val (symbol-value alist))
+        old)
+    (if (setq old (assoc key alist-val))
+        (progn
+          (setcdr old (cons val (cdr old)))
+          alist-val)
+      (set alist (cons (list key val) alist-val)))))
+
+(defun tags-tree-group-tags (tags file)
+  (let ((exp-list tags-tree-group-tags-expression)
+        exp tag name found-pat pats group found)
+    (while (and (not found) exp-list)
+      (setq exp (car exp-list)
+            exp-list (cdr exp-list))
+      (when (string-match (car exp) file)
+        (setq found t
+              exp (cdr exp))
+        (while tags
+          (setq tag (car tags)
+                tags (cdr tags)
+                name (car tag)
+                found-pat nil
+                pats exp)
+          (while (and (not found-pat) pats)
+            (setq pat (car pats)
+                  pats (cdr pats))
+            (when (string-match (cadr pat) name)
+              (tags-tree-group-add-tags 'group (car pat)
+                                        (cons (match-string (nth 2 pat) name) tag))
+              (setq found-pat t)))
+          (if (not found-pat)
+              (tags-tree-group-add-tags 'group nil (cons name tag))))))
+    (if found
+        (let ((other (assoc nil group))
+              res)
+          (append (mapcar (lambda (g)
+                            (cons (list (car g))
+                                  (nreverse (cdr g))))
+                          (delq other group))
+                  (nreverse (cdr other))))
+      (tags-tree-group-tags-default tags))))
+<span class="linecomment">;;}}}</span>
+
+(defun tags-tree-list-tags (widget)
+  (or (widget-get widget :args)
+      (let ((file (widget-get widget :file))
+            (tags-file-name (widget-get (tree-mode-widget-root widget)
+                                        :tags-file))
+            tags)
+        (save-excursion
+          (or (visit-tags-table-buffer tags-file-name)
+              (signal 'file-error (list "<span class="quote">Visiting tags table</span>"
+                                        "<span class="quote">file does not exist</span>"
+                                        tags-file-name)))
+          (goto-char (point-min))
+          (when (re-search-forward (concat "<span class="quote">\f\n</span>" "<span class="quote">\\(</span>" file "<span class="quote">\\)</span>" "<span class="quote">,</span>") nil t)
+            (let ((path (save-excursion (forward-line 1) (file-of-tag)))
+                  (goto-func goto-tag-location-function))
+              (forward-line 1)
+              (while (not (or (eobp) (looking-at "<span class="quote">\f</span>")))
+                (push (save-excursion (funcall snarf-tag-function)) tags)
+                (forward-line 1))
+              (setq tags (funcall tags-tree-group-tags-function (nreverse tags) path))
+              (mapcar (lambda (group)
+                        (tags-tree-make-nodes group path goto-func))
+                      tags)))))))
+
+(defun tags-tree-make-nodes (tags path goto-func &optional icon)
+  (if (listp (car tags))
+      `(tree-widget
+        :node (push-button
+               :tag ,(caar tags)
+               :format "<span class="quote">%[%t%]\n</span>"
+               :button-icon "<span class="quote">bucket</span>"
+               :notify tree-mode-reflesh-parent)
+        ,@(mapcar (lambda (group)
+                    (tags-tree-make-nodes group path goto-func (caar tags)))
+                  (cdr tags)))
+    `(push-button
+      :tag ,(car tags)
+      :format "<span class="quote">%[%t%]\n</span>"
+      :tag-info ,(cdr tags)
+      :file-path ,path
+      :button-icon ,(or (assoc-default icon tags-tree-icons)
+                        "<span class="quote">function</span>")
+      :notify tags-tree-select)))
+
+(defun tags-tree-select (wid &rest ignore)
+  (let ((buf (tag-find-file-of-tag-noselect (widget-get wid :file-path))))
+    (select-window (display-buffer buf))
+    (etags-goto-tag-location (widget-get wid :tag-info))))
+
+(defun tags-tree-expand (tree)
+  (or (widget-get tree :args)
+      (with-current-buffer (find-file-noselect (widget-get tree :tags-file))
+        (when tags-table-files
+          (let ((files (funcall tags-tree-group-file-function tags-table-files)))
+            (if (car files)
+                (widget-put (tree-widget-node tree) :tag (car files)))
+            (mapcar 'tags-tree-widget (cdr files)))))))
+
+(defun tags-tree-widget (tree)
+  (if (listp (cdr tree))
+      `(tree-widget
+        :node (push-button
+               :tag ,(car tree)
+               :format "<span class="quote">%[%t%]\n</span>"
+               :notify tree-mode-reflesh-parent)
+        ,@(mapcar 'tags-tree-widget (cdr tree)))
+    `(tree-widget
+      :node (push-button
+             :tag ,(car tree)
+             :format "<span class="quote">%[%t%]\n</span>"
+             :button-icon "<span class="quote">leaf</span>"
+             :file-path ,(expand-file-name (cdr tree) (file-truename default-directory))
+             :notify tree-mode-reflesh-parent)
+      :file ,(cdr tree)
+      :dynargs tags-tree-list-tags)))
+
+(defun tags-tree (arg)
+  (interactive "<span class="quote">P</span>")
+  (let ((oldbuf (current-buffer)))
+    (visit-tags-table-buffer)
+    (add-hook 'kill-buffer-hook 'tags-tree-kill-tree nil t)
+    (let ((tags-file buffer-file-name)
+          tree)
+      (unless (setq tree (assoc-default tags-file tags-tree-list))
+        (with-current-buffer
+            (if (functionp tags-tree-create-buffer-function)
+                (funcall tags-tree-create-buffer-function tags-file)
+              (get-buffer-create "<span class="quote">*tags-tree*</span>"))
+          (unless (eq major-mode 'tags-tree-mode)
+            (tags-tree-mode))
+          (setq tree (tree-mode-insert `(tree-widget
+                                         :node (push-button
+                                                :tag ,tags-file
+                                                :format "<span class="quote">%[%t%]\n</span>"
+                                                :notify tree-mode-reflesh-parent)
+                                         :dynargs tags-tree-expand
+                                         :has-children t
+                                         :tags-file ,tags-file
+                                         :open t)))
+          (add-to-list 'tags-tree-list (cons tags-file tree))))
+      (let* ((marker (widget-get tree :from))
+             (buf (marker-buffer marker)))
+        (unless (get-buffer-window buf)
+          (switch-to-buffer buf)
+          (funcall tags-tree-window-fuction buf oldbuf))
+        (let ((win (get-buffer-window buf)))
+          (with-selected-window win
+            (unless (widget-get tree :open)
+              (widget-apply-action tree))
+            (setq tree (tags-tree-find-file tree (buffer-file-name oldbuf)))
+            (if tree
+                (goto-char (widget-get tree :from))
+              (message "<span class="quote">No assoc file found in the tree, please use M-x visit-tags-table to change TAGS file!</span>"))
+            (recenter 1)))
+        (if arg
+            (select-window (get-buffer-window buf)))))))
+
+(defun tags-tree-kill-buffer ()
+  (mapcar (lambda (tree)
+            (setq tags-tree-list
+                  (remove (assoc (widget-get tree :tags-file) tags-tree-list)
+                          tags-tree-list)))
+          tree-mode-list))
+
+(defun tags-tree-kill-tree ()
+  (let ((tree (assoc buffer-file-name tags-tree-list)))
+    (when tree
+      (setq tags-tree-list (remove tree tags-tree-list)
+            tree (cdr tree))
+      (with-current-buffer (tree-mode-tree-buffer tree)
+        (tree-mode-delete tree)))))
+
+(defun tags-tree-display ()
+  (interactive)
+  (let ((widget (widget-at (1- (line-end-position))))
+        file)
+    (if (setq file (widget-get widget :file-path))
+        (with-selected-window (display-buffer (find-file-noselect file))
+          (if (widget-get widget :tag-info)
+              (etags-goto-tag-location (widget-get widget :tag-info)))))))
+
+(defun tags-tree-find-file (tree file)
+  (let ((path (tags-tree-find-file-1 tree file nil))
+        children child found)
+    (when path
+      (setq path (cdr (nreverse path)))
+      (while path
+        (setq found nil)
+        (unless (widget-get tree :open)
+          (widget-apply-action tree))
+        (setq children (widget-get tree :children))
+        (while (and (not found) children)
+          (setq child (car children)
+                children (cdr children))
+          (if (string= (widget-get (tree-widget-node child) :tag) (car path))
+              (setq path (cdr path)
+                    tree child
+                    found t))))
+      tree)))
+
+(defun tags-tree-find-file-1 (tree file path)
+  (let ((children (widget-get tree :args))
+        node found)
+    (if (null children)
+        (if (string= file (widget-get (setq node (tree-widget-node tree)) :file-path))
+            (cons (widget-get node :tag) path))
+      (setq node (widget-get (tree-widget-node tree) :tag))
+      (while (and (not found) children)
+        (setq child (car children)
+              children (cdr children))
+        (setq found (tags-tree-find-file-1 child file (cons node path))))
+      found)))
+
+(defun tags-tree-update-file ()
+  (interactive)
+  (let ((tree (widget-get (tree-mode-button-current-line) :parent))
+        file)
+    (if (setq file (widget-get tree :file))
+        (let ((default-directory (file-name-directory
+                                  (widget-get (tree-mode-widget-root tree) :tags-file))))
+          (if (zerop (call-process tags-tree-tags-update-program
+                                   nil nil nil
+                                   "<span class="quote">-u</span>" "<span class="quote">-f</span>" file))
+              (let ((tags-revert-without-query t))
+                (tree-mode-reflesh-tree tree))
+            (message "<span class="quote">Error when update file</span>"))))))
+
+(let ((map tags-tree-mode-map))
+  (define-key map "<span class="quote">\C-o</span>" 'tags-tree-display)
+  (define-key map "<span class="quote">G</span>" 'tags-tree-update-file))
+
+<span class="linecomment">;;; tags-tree.el ends here</span></span></pre></div><div class="wrapper close"></div></div><div class="footer"><hr /><span class="translation bar"><br />  <a class="translation new" href="https://www.emacswiki.org/emacs?action=translate;id=tags-tree.el;missing=de_es_fr_it_ja_ko_pt_ru_se_uk_zh" rel="nofollow">Add Translation</a></span><div class="edit bar"><a accesskey="c" class="comment local edit" href="https://www.emacswiki.org/emacs/Comments_on_tags-tree.el">Talk</a> <a accesskey="e" class="edit" href="https://www.emacswiki.org/emacs?action=edit;id=tags-tree.el" rel="nofollow" title="Click to edit this page">Edit this page</a> <a class="history" href="https://www.emacswiki.org/emacs?action=history;id=tags-tree.el" rel="nofollow">View other revisions</a> <a class="admin" href="https://www.emacswiki.org/emacs?action=admin;id=tags-tree.el" rel="nofollow">Administration</a></div><div class="time">Last edited 2012-01-28 13:42 UTC by <a class="author" href="https://www.emacswiki.org/emacs/JonasBernoulli">JonasBernoulli</a> <a class="diff" href="https://www.emacswiki.org/emacs?action=browse;diff=2;id=tags-tree.el" rel="nofollow">(diff)</a></div><div style="float:right; margin-left:1ex;">
+<!-- Creative Commons License -->
+<a class="licence" href="https://creativecommons.org/licenses/GPL/2.0/"><img alt="CC-GNU GPL" style="border:none" src="/pics/cc-GPL-a.png" /></a>
+<!-- /Creative Commons License -->
+</div>
+
+<!--
+<rdf:RDF xmlns="http://web.resource.org/cc/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+<Work rdf:about="">
+   <license rdf:resource="https://creativecommons.org/licenses/GPL/2.0/" />
+  <dc:type rdf:resource="http://purl.org/dc/dcmitype/Software" />
+</Work>
+
+<License rdf:about="https://creativecommons.org/licenses/GPL/2.0/">
+   <permits rdf:resource="http://web.resource.org/cc/Reproduction" />
+   <permits rdf:resource="http://web.resource.org/cc/Distribution" />
+   <requires rdf:resource="http://web.resource.org/cc/Notice" />
+   <permits rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+   <requires rdf:resource="http://web.resource.org/cc/ShareAlike" />
+   <requires rdf:resource="http://web.resource.org/cc/SourceCode" />
+</License>
+</rdf:RDF>
+-->
+
+<p class="legal">
+This work is licensed to you under version 2 of the
+<a href="https://www.gnu.org/">GNU</a> <a href="/GPL">General Public License</a>.
+Alternatively, you may choose to receive this work under any other
+license that grants the right to use, copy, modify, and/or distribute
+the work, as long as that license imposes the restriction that
+derivative works have to grant the same rights and impose the same
+restriction. For example, you may choose to receive this work under
+the
+<a href="https://www.gnu.org/">GNU</a>
+<a href="/FDL">Free Documentation License</a>, the
+<a href="https://creativecommons.org/">CreativeCommons</a>
+<a href="https://creativecommons.org/licenses/sa/1.0/">ShareAlike</a>
+License, the XEmacs manual license, or
+<a href="/OLD">similar licenses</a>.
+</p>
+<p class="legal" style="padding-top: 0.5em">Please note our <a href="/emacs/Privacy">Privacy Statement</a>.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+;;; Package-summary:
+;;; 1) curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+;;; 2) rustup update
+;;; 3) rustup component add rls rust-analysis rust-src
+;;; 4) rustup toolchain install nightly
+;;;    or rustup default nightly
+;;; 5) rustup component add rls --toolchain nightly
+;;;    rustup component add rust-analysis --toolchain nightly
+;;;    rustup component add rust-src --toolchain nightly
+;;; 3) cargo component add rust-src
+;;; 4) cargo +nightly install racer
+(add-hook 'rust-mode-hook 'lsp)
+(add-hook 'before-save-hook (lambda () (when (eq 'rust-mode major-mode)
+                                           (rust-format-buffer))))
+;(setq lsp-rust-server 'rust-analyzer)
+(setq lsp-rust-show-hover-context t)
